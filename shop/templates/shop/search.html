@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Результаты поиска</h1>
+    
+    <form method="get" action="{% url 'search' %}" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" 
+                   placeholder="Поиск товаров..." value="{{ query }}">
+            <button class="btn btn-primary" type="submit">Найти</button>
+        </div>
+    </form>
+    
+    {% if query %}
+        {% if results_count > 0 %}
+            <p>Найдено товаров: {{ results_count }}</p>
+            
+            <div class="row">
+                {% for product in results %}
+                <div class="col-md-3 mb-4">
+                    <div class="card h-100">
+                        {% if product.images.first %}
+                        <img src="{{ product.images.first.image.url }}" 
+                             class="card-img-top" 
+                             alt="{{ product.images.first.alt_text }}">
+                        {% endif %}
+                        <div class="card-body">
+                            <h3 class="h5 card-title">
+                                <a href="#">{{ product.name }}</a>
+                            </h3>
+                            <p class="card-text">{{ product.price }} руб.</p>
+                            <p class="card-text text-muted small">
+                                {{ product.category }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                По запросу "{{ query }}" ничего не найдено.
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="alert alert-warning">
+            Введите поисковый запрос в поле выше.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
