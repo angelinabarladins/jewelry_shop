@@ -1,150 +1,43 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
+{% block title %}Главная страница{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <!-- Промо-баннер -->
-    <div class="jumbotron bg-light p-4 mb-4">
-        <h1 class="display-4">Ювелирный магазин "Angel's Touch Jewelry"</h1>
-        <p class="lead">Эксклюзивные украшения из драгоценных металлов и камней</p>
-    </div>
-    
-    <!-- Акции -->
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            <h2 class="h4 mb-0">Акции и специальные предложения</h2>
-        </div>
-        <div class="card-body">
-            {% if active_promotions %}
-            <div class="row">
-                {% for promo in active_promotions %}
-                <div class="col-md-4 mb-3">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h3 class="h5 card-title">{{ promo.name }}</h3>
-                            <p class="card-text">{{ promo.description|truncatewords:15 }}</p>
-                            <div class="badge bg-danger text-white mb-2">
-                                Скидка {{ promo.discount }}%
-                            </div>
-                            <a href="#" class="btn btn-sm btn-outline-primary">
-                                Подробнее
-                            </a>
-                        </div>
-                    </div>
+<h1>Добро пожаловать в ювелирный магазин!</h1>
+
+<!-- Популярные товары -->
+<section class="mt-5">
+    <h2>Популярные товары</h2>
+    <div class="row">
+        {% for product in popular_products %}
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title">{{ product.name }}</h3>
+                    <p class="card-text">{{ product.price }} руб.</p>
+                    <p>Рейтинг: {{ product.avg_rating|default:"-" }} ({{ product.review_count }} отзывов)</p>
                 </div>
-                {% endfor %}
             </div>
-            <a href="#" class="btn btn-primary">Все акции</a>
-            {% else %}
-            <p class="text-muted">Сейчас нет активных акций</p>
-            {% endif %}
         </div>
+        {% endfor %}
     </div>
-    
-    <!-- Популярные товары -->
-    <div class="card mb-4">
-        <div class="card-header bg-success text-white">
-            <h2 class="h4 mb-0">Популярные товары</h2>
-        </div>
-        <div class="card-body">
-            {% if popular_products %}
-            <div class="row">
-                {% for product in popular_products %}
-                <div class="col-md-4 mb-3">
-                    <div class="card h-100">
-                        {% if product.images.first %}
-                        <img src="{{ product.images.first.image.url }}" 
-                             class="card-img-top" 
-                             alt="{{ product.images.first.alt_text }}">
-                        {% endif %}
-                        <div class="card-body">
-                            <h3 class="h5 card-title">
-                                <a href="#">{{ product.name }}</a>
-                            </h3>
-                            <p class="card-text">{{ product.price }} руб.</p>
-                            <div class="d-flex justify-content-between">
-                                <div class="text-warning">
-                                    ★ {{ product.avg_rating|default:"-" }}
-                                    <small>({{ product.review_count }})</small>
-                                </div>
-                                <button class="btn btn-sm btn-outline-secondary">
-                                    В избранное
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+</section>
+
+<!-- Новые поступления -->
+<section class="mt-5">
+    <h2>Новые поступления</h2>
+    <div class="row">
+        {% for product in new_products %}
+        <div class="col-md-3 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title">{{ product.name }}</h3>
+                    <p class="card-text">{{ product.price }} руб.</p>
                 </div>
-                {% endfor %}
             </div>
-            <a href="#" class="btn btn-success">Все популярные товары</a>
-            {% else %}
-            <p class="text-muted">Нет данных о популярных товарах</p>
-            {% endif %}
         </div>
+        {% endfor %}
     </div>
-    
-    <!-- Новые коллекции -->
-    <div class="card mb-4">
-        <div class="card-header bg-info text-white">
-            <h2 class="h4 mb-0">Новые коллекции</h2>
-        </div>
-        <div class="card-body">
-            {% if new_collections %}
-            <div class="row">
-                {% for collection in new_collections %}
-                <div class="col-md-6 mb-3">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h3 class="h5 card-title">{{ collection.name }}</h3>
-                            <p class="card-text">{{ collection.description|truncatewords:20 }}</p>
-                            <div class="text-muted small mb-2">
-                                Выпущена: {{ collection.release_date|date:"d.m.Y" }}
-                            </div>
-                            <a href="#" class="btn btn-sm btn-outline-info">
-                                Смотреть коллекцию
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            <a href="#" class="btn btn-info">Все коллекции</a>
-            {% else %}
-            <p class="text-muted">Нет данных о новых коллекциях</p>
-            {% endif %}
-        </div>
-    </div>
-    
-    <!-- Новые поступления -->
-    <div class="card mb-4">
-        <div class="card-header bg-warning text-dark">
-            <h2 class="h4 mb-0">Новые поступления</h2>
-        </div>
-        <div class="card-body">
-            {% if new_products %}
-            <div class="row">
-                {% for product in new_products %}
-                <div class="col-md-2 mb-3">
-                    <div class="card h-100">
-                        {% if product.images.first %}
-                        <img src="{{ product.images.first.image.url }}" 
-                             class="card-img-top" 
-                             alt="{{ product.images.first.alt_text }}">
-                        {% endif %}
-                        <div class="card-body">
-                            <h3 class="h6 card-title">
-                                <a href="#">{{ product.name|truncatechars:20 }}</a>
-                            </h3>
-                            <p class="card-text">{{ product.price }} руб.</p>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            <a href="#" class="btn btn-warning">Все новинки</a>
-            {% else %}
-            <p class="text-muted">Нет новых поступлений</p>
-            {% endif %}
-        </div>
-    </div>
-</div>
+</section>
 {% endblock %}
+

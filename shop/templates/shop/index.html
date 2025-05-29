@@ -1,10 +1,94 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Главная страница | Ювелирный магазин{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="text-center main-title my-4">Добро пожаловать в ювелирный магазин!</h1>
+
+    <!-- Поиск -->
+    <div class="search-container mb-5">
+        <form action="{% url 'search' %}" method="get" class="input-group">
+            <input type="text" name="q" class="form-control form-control-lg"
+                   placeholder="Найти кольца, серьги, браслеты...">
+            <button class="btn btn-primary btn-lg" type="submit">Поиск</button>
+        </form>
+    </div>
+
+    <!-- Популярные товары -->
+    <div class="widget mb-5">
+        <div class="widget-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-star-fill"></i> Популярные товары</span>
+            <a href="{% url 'search' %}?sort=popular" class="text-white">Все популярные →</a>
+        </div>
+        <div class="row p-3">
+            {% for product in popular_products %}
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="card product-card h-100">
+                    <div class="product-img-container position-relative">
+                        {% if product.images.first %}
+                        <img src="{{ product.images.first.image.url }}" class="product-img" alt="{{ product.name }}">
+                        {% else %}
+                        <div class="text-center text-muted w-100">Нет изображения</div>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{% url 'product_detail' product.id %}" class="text-decoration-none text-dark">
+                                {{ product.name }}
+                            </a>
+                        </h5>
+                        <p class="card-text product-price">{{ product.price }} ₽</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="rating">
+                                ★ {{ product.avg_rating|default:"-" }} <small>({{ product.review_count }})</small>
+                            </div>
+                            <button class="btn btn-sm {% if product.id|stringformat:'s' in request.session.favorites %}btn-danger{% else %}btn-outline-secondary{% endif %} toggle-favorite"
+                                    data-product-id="{{ product.id }}">
+                                <i class="bi {% if product.id|stringformat:'s' in request.session.favorites %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Новые поступления -->
+    <div class="widget mb-5">
+        <div class="widget-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-arrow-up-circle"></i> Новые поступления</span>
+            <a href="{% url 'search' %}?sort=new" class="text-white">Все новинки →</a>
+        </div>
+        <div class="row p-3">
+            {% for product in new_products %}
+            <div class="col-lg-2 col-md-3 col-6 mb-4">
+                <div class="card product-card h-100">
+                    <div class="product-img-container">
+                        {% if product.images.first %}
+                        <img src="{{ product.images.first.image.url }}" class="product-img" alt="{{ product.name }}">
+                        {% else %}
+                        <div class="text-center text-muted w-100">Нет изображения</div>
+                        {% endif %}
+                    </div>
+                    <div class="card-body p-2">
+                        <h6 class="card-title mb-1">
+                            <a href="{% url 'product_detail' product.id %}" class="text-decoration-none text-dark">
+                                {{ product.name|truncatechars:25 }}
+                            </a>
+                        </h6>
+                        <p class="card-text product-price mb-1">{{ product.price }} ₽</p>
+                        <button class="btn btn-sm {% if product.id|stringformat:'s' in request.session.favorites %}btn-danger{% else %}btn-outline-secondary{% endif %} toggle-favorite w-100"
+                                data-product-id="{{ product.id }}">
+                            <i class="bi {% if product.id|stringformat:'s' in request.session.favorites %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
