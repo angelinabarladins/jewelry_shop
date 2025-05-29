@@ -1,10 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Избранные товары{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h1 class="mb-4">Избранные товары</h1>
+
+    {% if products %}
+    <div class="row">
+        {% for product in products %}
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <div class="card product-card h-100">
+                <div class="product-img-container position-relative">
+                    {% if product.images.first %}
+                    <img src="{{ product.images.first.image.url }}" class="product-img" alt="{{ product.name }}">
+                    {% else %}
+                    <div class="text-center text-muted w-100">Нет изображения</div>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <a href="{% url 'product_detail' product.id %}" class="text-decoration-none text-dark">
+                            {{ product.name }}
+                        </a>
+                    </h5>
+                    <p class="card-text product-price">{{ product.price }} ₽</p>
+                    <button class="btn btn-sm btn-danger toggle-favorite w-100"
+                            data-product-id="{{ product.id }}">
+                        <i class="bi bi-heart-fill"></i> Удалить
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> У вас пока нет избранных товаров.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
