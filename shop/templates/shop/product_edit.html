@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h1 class="mb-4">{{ title }}</h1>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Основная информация</h5>
+                        <div class="mb-3">
+                            <label for="id_name" class="form-label">Название</label>
+                            {{ form.name }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_description" class="form-label">Описание</label>
+                            {{ form.description }}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="id_price" class="form-label">Цена</label>
+                                {{ form.price }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="id_weight" class="form-label">Вес (г)</label>
+                                {{ form.weight }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Характеристики</h5>
+                        <div class="mb-3">
+                            <label for="id_size" class="form-label">Размер</label>
+                            {{ form.size }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_purity" class="form-label">Проба</label>
+                            {{ form.purity }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Материалы</label>
+                            <div class="materials-checkboxes">
+                                {{ form.materials }}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_category" class="form-label">Категория</label>
+                            {{ form.category }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_collection" class="form-label">Коллекция</label>
+                            {{ form.collection }}
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            {{ form.is_active }}
+                            <label class="form-check-label" for="id_is_active">Активен</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Изображения</h5>
+                <div class="mb-3">
+                    <label for="id_images" class="form-label">Добавить изображения</label>
+                    <input type="file" name="images" id="id_images" class="form-control" multiple>
+                    <small class="text-muted">Выберите одно или несколько изображений</small>
+                </div>
+                
+                {% if product and product.images.all %}
+                <div class="mt-3">
+                    <h6>Текущие изображения:</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for image in product.images.all %}
+                        <div class="position-relative">
+                            <img src="{{ image.image.url }}" width="80" class="img-thumbnail">
+                            <a href="{% url 'image_delete' image.id %}" 
+                               class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                               onclick="return confirm('Удалить это изображение?')">
+                                ×
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-between">
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+            {% if product %}
+            <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-secondary">Отмена</a>
+            {% else %}
+            <a href="{% url 'index' %}" class="btn btn-outline-secondary">Отмена</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+{% endblock %}

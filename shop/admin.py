@@ -3,6 +3,7 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from .models import *
+from django.db.models import Sum, F
 
 
 class ProductMaterialInline(admin.TabularInline):
@@ -23,13 +24,13 @@ class ProductImageInline(admin.TabularInline):
 
     image_preview.short_description = 'Превью'
 
-
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
-    extra = 0
-    raw_id_fields = ('product',)
-    readonly_fields = ('price',)
+    extra = 1
+    readonly_fields = ('get_product_price',)  # Добавляем метод в readonly_fields
 
+    def get_queryset(self, request):  # Оптимизация
+        return super().get_queryset(request).select_related('product')
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
@@ -94,7 +95,6 @@ class CollectionAdmin(admin.ModelAdmin):
     def products_count(self, obj):
         return obj.product_set.count()
 
-
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'status', 'total', 'created_at', 'items_count')
@@ -105,10 +105,23 @@ class OrderAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at', 'updated_at', 'total')
     list_display_links = ('id', 'user')
 
+    def save_model(self, request, obj, form, change):
+        """Вычисляем total на основе элементов заказа перед сохранением."""
+        # Сначала сохраняем объект Order, чтобы получить ID
+        super().save_model(request, obj, form, change)
+
+        # Теперь, когда заказ сохранен, можем получить доступ к items
+        total = obj.items.aggregate(
+            total=Sum(F('product__price') * F('quantity'))
+        )['total']
+        obj.total = total or 0
+
+        # Еще раз сохраняем объект Order с обновленным total
+        super().save_model(request, obj, form, change)
+
     @admin.display(description='Товаров')
     def items_count(self, obj):
         return obj.items.count()
-
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
