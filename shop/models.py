@@ -1,7 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import MinValueValidator
-
+from decimal import Decimal
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
 
 class User(AbstractUser):
     phone = models.CharField(max_length=20, verbose_name='Телефон')
@@ -13,7 +14,6 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.username} ({self.email})"
-
 
 class Category(models.Model):
     name = models.CharField(max_length=100, verbose_name='Название')
@@ -111,13 +111,8 @@ class ProductImage(models.Model):
                                 related_name='images',
                                 verbose_name='Товар')
     image = models.ImageField(upload_to='products/', verbose_name='Изображение')
-    alt_text = models.CharField(max_length=100, blank=True,
-                                verbose_name='Альтернативный текст')
+    alt_text = models.CharField(max_length=100, blank=True, verbose_name='Альтернативный текст')
     is_main = models.BooleanField(default=False, verbose_name='Основное изображение')
-
-    class Meta:
-        verbose_name = 'Изображение товара'
-        verbose_name_plural = 'Изображения товаров'
 
     def __str__(self):
         return f"Изображение для {self.product}"
@@ -142,8 +137,14 @@ class Order(models.Model):
                              verbose_name='Пользователь')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES,
                               default=STATUS_NEW, verbose_name='Статус')
-    total = models.DecimalField(max_digits=10, decimal_places=2,
-                                verbose_name='Итоговая сумма')
+
+    total = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name='Итоговая сумма',
+        default=0.00  # Значение по умолчанию
+    )
+
     created_at = models.DateTimeField(auto_now_add=True,
                                       verbose_name='Дата создания')
     updated_at = models.DateTimeField(auto_now=True,
@@ -168,8 +169,11 @@ class OrderItem(models.Model):
                                 verbose_name='Товар')
     quantity = models.PositiveIntegerField(default=1,
                                            verbose_name='Количество')
-    price = models.DecimalField(max_digits=10, decimal_places=2,
-                                verbose_name='Цена за единицу')
+
+    def get_product_price(self):
+        return self.product.price
+
+    get_product_price.short_description = "Цена товара"  # Заголовок колонки в админке
 
     class Meta:
         verbose_name = 'Позиция заказа'
@@ -178,37 +182,24 @@ class OrderItem(models.Model):
     def __str__(self):
         return f"{self.product} x {self.quantity}"
 
-
 class Review(models.Model):
-    RATING_CHOICES = [
-        (1, '1 - Ужасно'),
-        (2, '2 - Плохо'),
-        (3, '3 - Удовлетворительно'),
-        (4, '4 - Хорошо'),
-        (5, '5 - Отлично'),
-    ]
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE,
-                             verbose_name='Пользователь')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE,
-                                verbose_name='Товар')
-    rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES,
-                                              verbose_name='Рейтинг')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     text = models.TextField(verbose_name='Текст отзыва')
-    created_at = models.DateTimeField(auto_now_add=True,
-                                      verbose_name='Дата создания')
-    is_approved = models.BooleanField(default=False,
-                                      verbose_name='Одобрен')
+    rating = models.IntegerField(
+        default=5,
+        validators=[MinValueValidator(1), MaxValueValidator(5)], # 1-5 звезд
+        verbose_name='Рейтинг'
+    )
+    is_approved = models.BooleanField(default=False, verbose_name='Одобрен')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
 
     class Meta:
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
-        ordering = ['-created_at']
-        unique_together = ('user', 'product')
 
     def __str__(self):
-        return f"Отзыв от {self.user} на {self.product}"
-
+        return f"Отзыв от {self.user.username} о {self.product.name}"
 
 class Promotion(models.Model):
     name = models.CharField(max_length=200, verbose_name='Название')
